@@ -5,6 +5,8 @@
 
 #include <stdio.h>
 
+#include "CPOFMeshFileLoader.h"
+
 using namespace irr;
 
 #ifdef _WIN32
@@ -15,7 +17,7 @@ INT WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR strCmdLine, INT )
 int main(int argc, char* argv[])
 #endif
 {
-	printf("hello, world\n");
+	scene::CPOFMeshFileLoader pof_loader(NULL, NULL);
 
 	return 0;
 }
