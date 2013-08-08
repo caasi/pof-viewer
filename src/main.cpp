@@ -3,8 +3,6 @@
 #include <windows.h>
 #endif
 
-#include <stdio.h>
-
 #include "CPOFMeshFileLoader.h"
 
 using namespace irr;
@@ -17,7 +15,7 @@ INT WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR strCmdLine, INT )
 int main(int argc, char* argv[])
 #endif
 {
-	scene::CPOFMeshFileLoader pof_loader(NULL, NULL);
+	scene::CPOFMeshFileLoader pof_loader;
 
 	IrrlichtDevice *device;
 
@@ -28,6 +26,22 @@ int main(int argc, char* argv[])
 	video::IVideoDriver* driver = device->getVideoDriver();
 	scene::ISceneManager* smgr = device->getSceneManager();
 	gui::IGUIEnvironment* guienv = device->getGUIEnvironment();
+
+	smgr->addExternalMeshLoader(&pof_loader);
+	
+	scene::IMesh* mesh = smgr->getMesh("./pof/Capital01.pof");
+	if (!mesh)
+	{
+		device->drop();
+		return 1;
+	}
+
+	scene::IMeshSceneNode* node = smgr->addMeshSceneNode(mesh);
+	if (node) {
+		node->setMaterialFlag(video::EMF_LIGHTING, false);
+	}
+
+	smgr->addCameraSceneNode(0, core::vector3df(0, 30, -40), core::vector3df(0, 5, 0));
 
 	while(device->run())
 	{

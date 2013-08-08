@@ -1,29 +1,35 @@
 #include "CPOFMeshFileLoader.h"
 
-#include <stdio.h>
+#include <iostream>
 #include <assert.h>
 
 #include "ISceneManager.h"
 #include "IFileSystem.h"
 #include "IReadFile.h"
 
+using namespace std;
+
 namespace irr
 {
 namespace scene
 {
 
+/*
 CPOFMeshFileLoader::CPOFMeshFileLoader(scene::ISceneManager* smgr, io::IFileSystem* fs)
 {
 	this->test();
 }
+*/
 
 bool CPOFMeshFileLoader::isALoadableFileExtension(const io::path& filename) const
 {
-	return false;
+	return core::hasFileExtension(filename, "pof");
 }
 
-IAnimatedMesh* CPOFMeshFileLoader::createMesh(io::IReadFile* f)
+IAnimatedMesh* CPOFMeshFileLoader::createMesh(io::IReadFile* file)
 {
+	cout << "file size: " << file->getSize() << endl;
+
 	return NULL;
 }
 

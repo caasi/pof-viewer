@@ -38,7 +38,7 @@ class ISceneManager;
 class CPOFMeshFileLoader : public IMeshLoader
 {
 public:
-	CPOFMeshFileLoader(scene::ISceneManager* smgr, io::IFileSystem* fs);
+	/* CPOFMeshFileLoader(scene::ISceneManager* smgr, io::IFileSystem* fs); */
 
 	virtual bool isALoadableFileExtension(const io::path& filename) const;
 
