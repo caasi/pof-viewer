@@ -25,9 +25,17 @@ typedef struct pof_string
 }			POF_STRING;
 typedef struct pof_header
 {
-	char file_id[4];
-	int version;
+	POF_CHAR file_id[4];
+	POF_INT version;
 }			POFHeader;
+typedef struct pof_chunk_header
+{
+	POF_CHAR chunk_id[4];
+	POF_INT length;
+}			POFChunkHeader;
+/* debug functions in C style for those structs */
+void pof_header_print(POFHeader* header);
+void pof_chunk_header_print(POFChunkHeader* header);
 
 namespace irr
 {

@@ -10,6 +10,28 @@
 
 using namespace std;
 
+void pof_header_print(POFHeader *header) {
+	printf(
+		"file id:\t%c%c%c%c\n",
+		header->file_id[0],
+		header->file_id[1],
+		header->file_id[2],
+		header->file_id[3]
+	);
+	printf("file version:\t%u\n", header->version);
+}
+
+void pof_chunk_header_print(POFChunkHeader *header) {
+	printf(
+		"chunk id:\t%c%c%c%c\n",
+		header->chunk_id[0],
+		header->chunk_id[1],
+		header->chunk_id[2],
+		header->chunk_id[3]
+	);
+	printf("chunk length:\t%u\n", header->length);
+}
+
 namespace irr
 {
 namespace scene
@@ -22,7 +44,7 @@ CPOFMeshFileLoader::CPOFMeshFileLoader()
 
 CPOFMeshFileLoader::~CPOFMeshFileLoader()
 {
-	if (this->pofHeader == NULL) {
+	if (this->pofHeader) {
 		delete this->pofHeader;
 		this->pofHeader = NULL;
 	}
@@ -35,18 +57,27 @@ bool CPOFMeshFileLoader::isALoadableFileExtension(const io::path& filename) cons
 
 IAnimatedMesh* CPOFMeshFileLoader::createMesh(io::IReadFile* file)
 {
-	if (this->pofHeader) {
-		delete this->pofHeader;
-		cout << "clean up prev file" << endl;
-	}
+	long int size = 0;
+	POFChunkHeader* chunk_header = NULL;
 
+	if (this->pofHeader) delete this->pofHeader;
 	this->pofHeader = new POFHeader();
 
-	file->read(this->pofHeader, 8);
+	file->read(this->pofHeader, sizeof(POFHeader));
+	pof_header_print(this->pofHeader);
 
-	cout << "file size:\t" << file->getSize() << endl;
+	size = file->getSize();
+	cout << "file size:\t" << size << endl;
 
-	this->test();
+	do {
+		chunk_header = new POFChunkHeader();
+
+		file->read(chunk_header, sizeof(POFChunkHeader));
+		pof_chunk_header_print(chunk_header);
+		file->seek(chunk_header->length, true);
+
+		delete chunk_header;
+	} while (file->getPos() < size);
 
 	return NULL;
 }
@@ -66,14 +97,8 @@ void CPOFMeshFileLoader::test()
 	assert(sizeof(POF_FLOAT) == 4);
 	assert(sizeof(v) == 12);
 
-	printf(
-		"file id:\t%c%c%c%c\n",
-		this->pofHeader->file_id[0],
-		this->pofHeader->file_id[1],
-		this->pofHeader->file_id[2],
-		this->pofHeader->file_id[3]
-	);
-	cout << "file version:\t" << this->pofHeader->version << endl;
+	assert(sizeof(POFHeader) == 8);
+	assert(sizeof(POFChunkHeader) == 8);
 
 	return;
 }
