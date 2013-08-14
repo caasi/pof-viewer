@@ -29,7 +29,12 @@ int main(int argc, char* argv[])
 
 	smgr->addExternalMeshLoader(&pof_loader);
 	
-	scene::IMesh* mesh = smgr->getMesh("./pof/Capital01.pof");
+	scene::IMesh* mesh;
+	mesh = smgr->getMesh("./pof/Capital2T-01.pof");
+	mesh = smgr->getMesh("./pof/Capital2V-01.pof");
+	mesh = smgr->getMesh("./pof/Capital2S-01.pof");
+	mesh = smgr->getMesh("./pof/Capital01.pof");
+
 	if (!mesh)
 	{
 		device->drop();

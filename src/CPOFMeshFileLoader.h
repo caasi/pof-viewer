@@ -23,6 +23,11 @@ typedef struct pof_string
 	POF_INT length;
 	POF_CHAR* text;	// it's not null-terminated in the POF files
 }			POF_STRING;
+typedef struct pof_header
+{
+	char file_id[4];
+	int version;
+}			POFHeader;
 
 namespace irr
 {
@@ -38,13 +43,16 @@ class ISceneManager;
 class CPOFMeshFileLoader : public IMeshLoader
 {
 public:
-	/* CPOFMeshFileLoader(scene::ISceneManager* smgr, io::IFileSystem* fs); */
+	CPOFMeshFileLoader();
+
+	~CPOFMeshFileLoader();
 
 	virtual bool isALoadableFileExtension(const io::path& filename) const;
 
 	virtual IAnimatedMesh* createMesh(io::IReadFile* file);
 
 private:
+	POFHeader *pofHeader;
 	void test();
 };
 

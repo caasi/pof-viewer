@@ -1,6 +1,7 @@
 #include "CPOFMeshFileLoader.h"
 
 #include <iostream>
+#include <stdio.h>
 #include <assert.h>
 
 #include "ISceneManager.h"
@@ -14,12 +15,18 @@ namespace irr
 namespace scene
 {
 
-/*
-CPOFMeshFileLoader::CPOFMeshFileLoader(scene::ISceneManager* smgr, io::IFileSystem* fs)
+CPOFMeshFileLoader::CPOFMeshFileLoader()
 {
-	this->test();
+	this->pofHeader = NULL;
 }
-*/
+
+CPOFMeshFileLoader::~CPOFMeshFileLoader()
+{
+	if (this->pofHeader == NULL) {
+		delete this->pofHeader;
+		this->pofHeader = NULL;
+	}
+}
 
 bool CPOFMeshFileLoader::isALoadableFileExtension(const io::path& filename) const
 {
@@ -28,7 +35,18 @@ bool CPOFMeshFileLoader::isALoadableFileExtension(const io::path& filename) cons
 
 IAnimatedMesh* CPOFMeshFileLoader::createMesh(io::IReadFile* file)
 {
-	cout << "file size: " << file->getSize() << endl;
+	if (this->pofHeader) {
+		delete this->pofHeader;
+		cout << "clean up prev file" << endl;
+	}
+
+	this->pofHeader = new POFHeader();
+
+	file->read(this->pofHeader, 8);
+
+	cout << "file size:\t" << file->getSize() << endl;
+
+	this->test();
 
 	return NULL;
 }
@@ -47,6 +65,15 @@ void CPOFMeshFileLoader::test()
 	assert(sizeof(POF_UBYTE) == 1);
 	assert(sizeof(POF_FLOAT) == 4);
 	assert(sizeof(v) == 12);
+
+	printf(
+		"file id:\t%c%c%c%c\n",
+		this->pofHeader->file_id[0],
+		this->pofHeader->file_id[1],
+		this->pofHeader->file_id[2],
+		this->pofHeader->file_id[3]
+	);
+	cout << "file version:\t" << this->pofHeader->version << endl;
 
 	return;
 }
