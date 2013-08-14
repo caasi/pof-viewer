@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 
 #include "ISceneManager.h"
@@ -11,24 +12,14 @@
 using namespace std;
 
 void pof_header_print(POFHeader *header) {
-	printf(
-		"file id:\t%c%c%c%c\n",
-		header->file_id[0],
-		header->file_id[1],
-		header->file_id[2],
-		header->file_id[3]
-	);
+	char *h = (char *)&header->file_id;
+	printf("file id:\t%c%c%c%c\n", h[0], h[1], h[2], h[3]);
 	printf("file version:\t%u\n", header->version);
 }
 
 void pof_chunk_header_print(POFChunkHeader *header) {
-	printf(
-		"chunk id:\t%c%c%c%c\n",
-		header->chunk_id[0],
-		header->chunk_id[1],
-		header->chunk_id[2],
-		header->chunk_id[3]
-	);
+	char *h = (char *)&header->chunk_id;
+	printf("chunk id:\t%c%c%c%c\n", h[0], h[1], h[2], h[3]);
 	printf("chunk length:\t%u\n", header->length);
 }
 
@@ -73,7 +64,11 @@ IAnimatedMesh* CPOFMeshFileLoader::createMesh(io::IReadFile* file)
 		chunk_header = new POFChunkHeader();
 
 		file->read(chunk_header, sizeof(POFChunkHeader));
-		pof_chunk_header_print(chunk_header);
+	
+		if (chunk_header->chunk_id == ID_HDR2 || chunk_header->chunk_id == ID_OBJ2) {
+			pof_chunk_header_print(chunk_header);
+		}
+
 		file->seek(chunk_header->length, true);
 
 		delete chunk_header;
