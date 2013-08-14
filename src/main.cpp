@@ -17,6 +17,8 @@ int main(int argc, char* argv[])
 {
 	scene::CPOFMeshFileLoader pof_loader;
 
+	if (argc != 2) return 1;
+
 	IrrlichtDevice *device;
 
 	device = createDevice(video::EDT_OPENGL, core::dimension2d<u32>(640, 480), 32);
@@ -30,10 +32,7 @@ int main(int argc, char* argv[])
 	smgr->addExternalMeshLoader(&pof_loader);
 	
 	scene::IMesh* mesh;
-	mesh = smgr->getMesh("./pof/Capital2T-01.pof");
-	mesh = smgr->getMesh("./pof/Capital2V-01.pof");
-	mesh = smgr->getMesh("./pof/Capital2S-01.pof");
-	mesh = smgr->getMesh("./pof/Capital01.pof");
+	mesh = smgr->getMesh(argv[1]);
 
 	if (!mesh)
 	{

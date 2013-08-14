@@ -6,7 +6,7 @@ $(DIRS):
 	-@cd $@ && make clean && make
 
 run: all
-	./bin/pof-viewer
+	./bin/pof-viewer ./pof/Capital01.pof
 
 clean:
 	-@cd $(DIRS) && make clean
