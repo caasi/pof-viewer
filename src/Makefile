@@ -1,6 +1,6 @@
 # Irrlicht Engine Demo Makefile
 Target = pof-viewer
-Sources = main.cpp CPOFMeshFileLoader.cpp
+Sources = main.cpp CPOFMeshFileLoader.cpp pof.cpp
 
 CPPFLAGS = -I/usr/include/irrlicht -I/usr/X11R6/include
 CXXFLAGS = -Wall -O3 -ffast-math
