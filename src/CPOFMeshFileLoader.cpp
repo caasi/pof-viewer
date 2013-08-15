@@ -25,7 +25,7 @@ void pof_chunk_header_print(POFChunkHeader *header)
 	printf("chunk length:\t%u\n", header->length);
 }
 
-int pof_chunk_hdr2_read(POFObject *obj, irr::io::IReadFile *file)
+int pof_chunk_hdr2_build(POFObject *obj, irr::io::IReadFile *file)
 {
 	int i;
 	int byte_read = 0;
@@ -71,6 +71,11 @@ int pof_chunk_hdr2_read(POFObject *obj, irr::io::IReadFile *file)
 		}
 	}
 
+	return byte_read;
+}
+
+void pof_chunk_hdr2_print(POFObject *obj)
+{
 	printf("max radius:\t%f\n", obj->max_radius);
 	printf("obj flags:\t%x\n", obj->obj_flags);
 	printf("sobj count:\t%d\n", obj->num_subobjects);
@@ -87,7 +92,13 @@ int pof_chunk_hdr2_read(POFObject *obj, irr::io::IReadFile *file)
 		obj->max_bounding.z
 	);
 	printf("detail levels:\t%d\n", obj->num_detail_levels);
+	for (int i = 0; i < obj->num_detail_levels; ++i) {
+		printf("\t%d\n", obj->sobj_detail_levels[i]);
+	}
 	printf("debris count:\t%d\n", obj->num_debris);
+	for (int i = 0; i < obj->num_debris; ++i) {
+		printf("\t%d\n", obj->sobj_debris[i]);
+	}
 	printf("mass:\t\t%f\n", obj->mass);
 	printf(
 		"mass center:\t%f, %f, %f\n",
@@ -96,20 +107,27 @@ int pof_chunk_hdr2_read(POFObject *obj, irr::io::IReadFile *file)
 		obj->mass_center.z
 	);
 	printf("cross sections:\t%d\n", obj->num_cross_sections);
+	for (int i = 0; i < obj->num_cross_sections; ++i) {
+		POFChunkCrossSection *section = &(obj->cross_sections[i]);
+		printf("\tdepth:\t%f\n", section->depth);
+		printf("\tradius:\t%f\n", section->radius);
+	}
 	printf("lights:\t%d\n", obj->num_lights);
-
-	if (obj->lights) {
-		delete [] (obj->lights);
-	}
-	if (obj->cross_sections) {
-		delete [] (obj->cross_sections);
-	}
-	if (obj->sobj_debris) {
-		delete [] (obj->sobj_debris);
+	for (int i = 0; i < obj->num_lights; ++i) {
+		POFChunkLight *light = &(obj->lights[i]);
+		printf("\ttype:\t%d\n", light->light_type);
 	}
 
+	return;
+}
 
-	return byte_read;
+void pof_chunk_hdr2_clean(POFObject *obj)
+{
+	if (obj->lights) delete [] obj->lights;
+	if (obj->cross_sections) delete [] obj->cross_sections;
+	if (obj->sobj_debris) delete [] obj->sobj_debris;
+
+	return;
 }
 
 namespace irr
@@ -160,8 +178,11 @@ IAnimatedMesh* CPOFMeshFileLoader::createMesh(io::IReadFile* file)
 	
 		if (chunk_header->chunk_id == ID_HDR2) {
 			pof_chunk_header_print(chunk_header);
+			
 			pof_obj = new POFObject();
-			byte_read = pof_chunk_hdr2_read(pof_obj, file);
+			byte_read = pof_chunk_hdr2_build(pof_obj, file);
+			pof_chunk_hdr2_print(pof_obj);
+			pof_chunk_hdr2_clean(pof_obj);
 			delete pof_obj;
 		} else if (chunk_header->chunk_id == ID_OBJ2) {
 			// do nothing

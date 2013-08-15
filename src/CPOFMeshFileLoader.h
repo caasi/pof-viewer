@@ -79,7 +79,10 @@ typedef struct pof_chunk_hdr2
 /* debug functions in C style for those structs */
 void pof_header_print(POFHeader* header);
 void pof_chunk_header_print(POFChunkHeader* header);
-void pof_chunk_hrd2_read(POFObject *obj, irr::io::IReadFile *file);
+
+int pof_chunk_hdr2_build(POFObject *obj, irr::io::IReadFile *file);
+void pof_chunk_hdr2_print(POFObject *obj);
+void pof_chunk_hdr2_clean(POFObject *obj);
 
 /* begin */
 namespace irr
