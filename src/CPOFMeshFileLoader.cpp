@@ -84,7 +84,6 @@ void pof_chunk_header_print(POFChunkHeader *header, unsigned int indent)
 
 int pof_chunk_hdr2_build(POFObject *obj, irr::io::IReadFile *file)
 {
-	int i;
 	int byte_read = 0;
 
 	byte_read += file->read(obj, 40);
@@ -92,18 +91,14 @@ int pof_chunk_hdr2_build(POFObject *obj, irr::io::IReadFile *file)
 	obj->sobj_detail_levels = NULL;
 	if (obj->num_detail_levels) {
 		obj->sobj_detail_levels = new POF_INT [obj->num_detail_levels];
-		for (i = 0; i < obj->num_detail_levels; ++i) {
-			byte_read += file->read(&(obj->sobj_detail_levels[i]), sizeof(POF_INT));
-		}
+		byte_read += file->read(obj->sobj_detail_levels, sizeof(POF_INT) * obj->num_detail_levels);
 	}
 
 	byte_read += file->read(&obj->num_debris, sizeof(POF_INT));
 	obj->sobj_debris = NULL;
 	if (obj->num_debris) {
 		obj->sobj_debris = new POF_INT [obj->num_debris];
-		for (i = 0; i < obj->num_debris; ++i) {
-			byte_read += file->read(&(obj->sobj_debris[i]), sizeof(POF_INT));
-		}
+		byte_read += file->read(obj->sobj_debris, sizeof(POF_INT) * obj->num_debris);
 	}
 
 	byte_read += file->read(&obj->mass, sizeof(POF_FLOAT));
@@ -114,18 +109,14 @@ int pof_chunk_hdr2_build(POFObject *obj, irr::io::IReadFile *file)
 	obj->cross_sections = NULL;
 	if (obj->num_cross_sections != -1 && obj->num_cross_sections != 0) {
 		obj->cross_sections = new POFChunkCrossSection [obj->num_cross_sections];
-		for (i = 0; i < obj->num_cross_sections; ++i) {
-			byte_read += file->read(&(obj->cross_sections[i]), sizeof(POFChunkCrossSection));
-		}
+		byte_read += file->read(obj->cross_sections, sizeof(POFChunkCrossSection) * obj->num_cross_sections);
 	}
 
 	byte_read += file->read(&obj->num_lights, sizeof(POF_INT));
 	obj->lights = NULL;
 	if (obj->num_lights) {
 		obj->lights = new POFChunkLight [obj->num_lights];
-		for (i = 0; i < obj->num_lights; ++i) {
-			byte_read += file->read(&(obj->lights[i]), sizeof(POFChunkLight));
-		}
+		byte_read += file->read(obj->lights, sizeof(POFChunkLight) * obj->num_lights);
 	}
 
 	return byte_read;
