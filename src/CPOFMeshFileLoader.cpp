@@ -11,6 +11,28 @@
 
 using namespace std;
 
+void pof_vector_print(POF_VECTOR *v, unsigned int indent)
+{
+	char buffer[11];
+
+	if (indent < 0) indent = 0;
+	if (indent > 10) indent = 10;
+
+	int i = 0;
+	for (; i < indent; ++i) {
+		buffer[i] = '\t';
+	}
+	buffer[i] = NULL;
+
+	printf("%s{\n", buffer);
+	printf("%s\tx: %f\n", buffer, v->x);
+	printf("%s\ty: %f\n", buffer, v->y);
+	printf("%s\tz: %f\n", buffer, v->z);
+	printf("%s}\n", buffer);
+
+	return;
+}
+
 void pof_header_print(POFHeader *header)
 {
 	char *h = (char *)&header->file_id;
@@ -79,18 +101,10 @@ void pof_chunk_hdr2_print(POFObject *obj)
 	printf("max radius:\t%f\n", obj->max_radius);
 	printf("obj flags:\t%x\n", obj->obj_flags);
 	printf("sobj count:\t%d\n", obj->num_subobjects);
-	printf(
-		"min bounding:\t%f, %f, %f\n",
-		obj->min_bounding.x,
-		obj->min_bounding.y,
-		obj->min_bounding.z
-	);
-	printf(
-		"max bounding:\t%f, %f, %f\n",
-		obj->max_bounding.x,
-		obj->max_bounding.y,
-		obj->max_bounding.z
-	);
+	printf("min bounding:\n");
+	pof_vector_print(&obj->min_bounding, 0);
+	printf("max bounding:\n");
+	pof_vector_print(&obj->max_bounding, 0);
 	printf("detail levels:\t%d\n", obj->num_detail_levels);
 	for (int i = 0; i < obj->num_detail_levels; ++i) {
 		printf("\t%d\n", obj->sobj_detail_levels[i]);
@@ -100,12 +114,8 @@ void pof_chunk_hdr2_print(POFObject *obj)
 		printf("\t%d\n", obj->sobj_debris[i]);
 	}
 	printf("mass:\t\t%f\n", obj->mass);
-	printf(
-		"mass center:\t%f, %f, %f\n",
-		obj->mass_center.x,
-		obj->mass_center.y,
-		obj->mass_center.z
-	);
+	printf("mass center:\n");
+	pof_vector_print(&obj->mass_center, 0);
 	printf("cross sections:\t%d\n", obj->num_cross_sections);
 	for (int i = 0; i < obj->num_cross_sections; ++i) {
 		POFChunkCrossSection *section = &(obj->cross_sections[i]);
@@ -116,6 +126,8 @@ void pof_chunk_hdr2_print(POFObject *obj)
 	for (int i = 0; i < obj->num_lights; ++i) {
 		POFChunkLight *light = &(obj->lights[i]);
 		printf("\ttype:\t%d\n", light->light_type);
+		printf("\tlocation:\n");
+		pof_vector_print(&light->location, 1);
 	}
 
 	return;

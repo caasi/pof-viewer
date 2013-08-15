@@ -77,7 +77,10 @@ typedef struct pof_chunk_hdr2
 	POFChunkLight *lights;
 }			POFObject;
 /* debug functions in C style for those structs */
+void pof_vector_print(POF_VECTOR *v, unsigned int indent);
+
 void pof_header_print(POFHeader* header);
+
 void pof_chunk_header_print(POFChunkHeader* header);
 
 int pof_chunk_hdr2_build(POFObject *obj, irr::io::IReadFile *file);
