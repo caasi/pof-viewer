@@ -11,16 +11,105 @@
 
 using namespace std;
 
-void pof_header_print(POFHeader *header) {
+void pof_header_print(POFHeader *header)
+{
 	char *h = (char *)&header->file_id;
 	printf("file id:\t%c%c%c%c\n", h[0], h[1], h[2], h[3]);
 	printf("file version:\t%u\n", header->version);
 }
 
-void pof_chunk_header_print(POFChunkHeader *header) {
+void pof_chunk_header_print(POFChunkHeader *header)
+{
 	char *h = (char *)&header->chunk_id;
 	printf("chunk id:\t%c%c%c%c\n", h[0], h[1], h[2], h[3]);
 	printf("chunk length:\t%u\n", header->length);
+}
+
+int pof_chunk_hdr2_read(POFObject *obj, irr::io::IReadFile *file)
+{
+	int i;
+	int byte_read = 0;
+
+	byte_read += file->read(obj, 40);
+
+	obj->sobj_detail_levels = NULL;
+	if (obj->num_detail_levels) {
+		obj->sobj_detail_levels = new POF_INT [obj->num_detail_levels];
+		for (i = 0; i < obj->num_detail_levels; ++i) {
+			byte_read += file->read(&(obj->sobj_detail_levels[i]), sizeof(POF_INT));
+		}
+	}
+
+	byte_read += file->read(&obj->num_debris, sizeof(POF_INT));
+	obj->sobj_debris = NULL;
+	if (obj->num_debris) {
+		obj->sobj_debris = new POF_INT [obj->num_debris];
+		for (i = 0; i < obj->num_debris; ++i) {
+			byte_read += file->read(&(obj->sobj_debris[i]), sizeof(POF_INT));
+		}
+	}
+
+	byte_read += file->read(&obj->mass, sizeof(POF_FLOAT));
+	byte_read += file->read(&obj->mass_center, sizeof(POF_VECTOR));
+	byte_read += file->read(&obj->moment_inertia, 9 * sizeof(POF_FLOAT));
+	
+	byte_read += file->read(&obj->num_cross_sections, sizeof(POF_INT));
+	obj->cross_sections = NULL;
+	if (obj->num_cross_sections != -1 && obj->num_cross_sections != 0) {
+		obj->cross_sections = new POFChunkCrossSection [obj->num_cross_sections];
+		for (i = 0; i < obj->num_cross_sections; ++i) {
+			byte_read += file->read(&(obj->cross_sections[i]), sizeof(POFChunkCrossSection));
+		}
+	}
+
+	byte_read += file->read(&obj->num_lights, sizeof(POF_INT));
+	obj->lights = NULL;
+	if (obj->num_lights) {
+		obj->lights = new POFChunkLight [obj->num_lights];
+		for (i = 0; i < obj->num_lights; ++i) {
+			byte_read += file->read(&(obj->lights[i]), sizeof(POFChunkLight));
+		}
+	}
+
+	printf("max radius:\t%f\n", obj->max_radius);
+	printf("obj flags:\t%x\n", obj->obj_flags);
+	printf("sobj count:\t%d\n", obj->num_subobjects);
+	printf(
+		"min bounding:\t%f, %f, %f\n",
+		obj->min_bounding.x,
+		obj->min_bounding.y,
+		obj->min_bounding.z
+	);
+	printf(
+		"max bounding:\t%f, %f, %f\n",
+		obj->max_bounding.x,
+		obj->max_bounding.y,
+		obj->max_bounding.z
+	);
+	printf("detail levels:\t%d\n", obj->num_detail_levels);
+	printf("debris count:\t%d\n", obj->num_debris);
+	printf("mass:\t\t%f\n", obj->mass);
+	printf(
+		"mass center:\t%f, %f, %f\n",
+		obj->mass_center.x,
+		obj->mass_center.y,
+		obj->mass_center.z
+	);
+	printf("cross sections:\t%d\n", obj->num_cross_sections);
+	printf("lights:\t%d\n", obj->num_lights);
+
+	if (obj->lights) {
+		delete [] (obj->lights);
+	}
+	if (obj->cross_sections) {
+		delete [] (obj->cross_sections);
+	}
+	if (obj->sobj_debris) {
+		delete [] (obj->sobj_debris);
+	}
+
+
+	return byte_read;
 }
 
 namespace irr
@@ -49,7 +138,9 @@ bool CPOFMeshFileLoader::isALoadableFileExtension(const io::path& filename) cons
 IAnimatedMesh* CPOFMeshFileLoader::createMesh(io::IReadFile* file)
 {
 	long int size = 0;
+	int byte_read = 0;
 	POFChunkHeader* chunk_header = NULL;
+	POFObject* pof_obj = NULL;
 
 	if (this->pofHeader) delete this->pofHeader;
 	this->pofHeader = new POFHeader();
@@ -61,15 +152,22 @@ IAnimatedMesh* CPOFMeshFileLoader::createMesh(io::IReadFile* file)
 	cout << "file size:\t" << size << endl;
 
 	do {
+		byte_read = 0;
+
 		chunk_header = new POFChunkHeader();
 
 		file->read(chunk_header, sizeof(POFChunkHeader));
 	
-		if (chunk_header->chunk_id == ID_HDR2 || chunk_header->chunk_id == ID_OBJ2) {
+		if (chunk_header->chunk_id == ID_HDR2) {
 			pof_chunk_header_print(chunk_header);
+			pof_obj = new POFObject();
+			byte_read = pof_chunk_hdr2_read(pof_obj, file);
+			delete pof_obj;
+		} else if (chunk_header->chunk_id == ID_OBJ2) {
+			// do nothing
 		}
 
-		file->seek(chunk_header->length, true);
+		file->seek(chunk_header->length - byte_read, true);
 
 		delete chunk_header;
 	} while (file->getPos() < size);

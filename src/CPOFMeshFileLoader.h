@@ -41,6 +41,16 @@ typedef struct pof_chunk_header
 	POF_INT chunk_id;
 	POF_INT length;
 }			POFChunkHeader;
+typedef struct pof_chunk_hdr2_cross_section
+{
+	POF_FLOAT depth;
+	POF_FLOAT radius;
+}			POFChunkCrossSection;
+typedef struct pof_chunk_hdr2_light
+{
+	POF_VECTOR location;
+	POF_INT light_type;
+}			POFChunkLight;
 typedef struct pof_chunk_hdr2
 {
 	POF_FLOAT max_radius;
@@ -51,26 +61,25 @@ typedef struct pof_chunk_hdr2
 	POF_VECTOR max_bounding;
 
 	POF_INT num_detail_levels;
-	POF_INT sobj_detaillevels[];
+	POF_INT *sobj_detail_levels;
 
 	POF_INT num_debris;
-	POF_INT sobj_debris[];
+	POF_INT *sobj_debris;
 
 	POF_FLOAT mass;
-	POF_FLOAT mass_center;
-	POF_FLOAT moment_intetia;
+	POF_VECTOR mass_center;
+	POF_FLOAT moment_inertia[3][3];
 
 	POF_INT num_cross_sections;
-	POF_FLOAT depth[];
-	POF_FLOAT radius;
+	POFChunkCrossSection *cross_sections;
 
 	POF_INT num_lights;
-	POF_VECTOR location[];
-	POF_INT lighttype;
+	POFChunkLight *lights;
 }			POFObject;
 /* debug functions in C style for those structs */
 void pof_header_print(POFHeader* header);
 void pof_chunk_header_print(POFChunkHeader* header);
+void pof_chunk_hrd2_read(POFObject *obj, irr::io::IReadFile *file);
 
 /* begin */
 namespace irr
