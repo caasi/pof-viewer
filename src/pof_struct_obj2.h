@@ -4,8 +4,8 @@ POF_INT parent;
 POF_VECTOR offset;
 
 POF_VECTOR geometric_center;
-POF_VECTOR min_bounding;
-POF_VECTOR max_bounding;
+POF_VECTOR bounding_max;
+POF_VECTOR bounding_min;
 
 POF_STRING name;
 POF_STRING properties;

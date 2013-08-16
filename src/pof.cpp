@@ -127,11 +127,11 @@ void pof_chunk_hdr2_print(POFObject *obj, unsigned int indent)
 
 	INDENT(indent);
 	printf("min bounding:\n");
-	pof_vector_print(&obj->min_bounding, indent);
+	pof_vector_print(&obj->bounding_min, indent);
 
 	INDENT(indent);
 	printf("max bounding:\n");
-	pof_vector_print(&obj->max_bounding, indent);
+	pof_vector_print(&obj->bounding_max, indent);
 
 	INDENT(indent);
 	printf("detail levels:\t%d\n", obj->num_detail_levels);
@@ -196,8 +196,8 @@ int pof_chunk_obj2_build(POFSubObject *obj, irr::io::IReadFile *file)
 	bytes_read += file->read(&obj->parent, sizeof(POF_INT));
 	bytes_read += file->read(&obj->offset, sizeof(POF_VECTOR));
 	bytes_read += file->read(&obj->geometric_center, sizeof(POF_VECTOR));
-	bytes_read += file->read(&obj->min_bounding, sizeof(POF_VECTOR));
-	bytes_read += file->read(&obj->max_bounding, sizeof(POF_VECTOR));
+	bytes_read += file->read(&obj->bounding_min, sizeof(POF_VECTOR));
+	bytes_read += file->read(&obj->bounding_max, sizeof(POF_VECTOR));
 	bytes_read += pof_string_read(&obj->name, file);
 	bytes_read += pof_string_read(&obj->properties, file);
 	bytes_read += file->read(&obj->movement_type, sizeof(POF_INT));
@@ -223,7 +223,7 @@ void pof_chunk_obj2_print(POFSubObject *obj, unsigned int indent)
 
 	INDENT(indent);
 	printf("offset:\n");
-	pof_vector_print(&obj->min_bounding, indent);
+	pof_vector_print(&obj->bounding_min, indent);
 
 	INDENT(indent);
 	printf("center:\n");
@@ -231,11 +231,11 @@ void pof_chunk_obj2_print(POFSubObject *obj, unsigned int indent)
 
 	INDENT(indent);
 	printf("min bounding:\n");
-	pof_vector_print(&obj->min_bounding, indent);
+	pof_vector_print(&obj->bounding_min, indent);
 
 	INDENT(indent);
 	printf("max bounding:\n");
-	pof_vector_print(&obj->max_bounding, indent);
+	pof_vector_print(&obj->bounding_max, indent);
 
 	INDENT(indent);
 	printf("name:\n");

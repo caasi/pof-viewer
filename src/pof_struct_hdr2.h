@@ -2,8 +2,8 @@ POF_FLOAT max_radius;
 POF_INT obj_flags;
 POF_INT num_subobjects;
 
-POF_VECTOR min_bounding;
-POF_VECTOR max_bounding;
+POF_VECTOR bounding_min;
+POF_VECTOR bounding_max;
 
 POF_INT num_detail_levels;
 POF_INT *sobj_detail_levels;

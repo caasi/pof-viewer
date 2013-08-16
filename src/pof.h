@@ -33,11 +33,73 @@ typedef struct pof_chunk_hdr2_light
 typedef struct pof_chunk_hdr2
 {
 #include "pof_struct_hdr2.h"
-}			POFObject;
+} POFObject;
 typedef struct pof_chunk_obj2
 {
 #include "pof_struct_obj2.h"
-}			POFSubObject;
+} POFSubObject;
+
+/* IDTA */
+typedef struct pof_bsp_eof
+{
+	POF_INT id;
+	POF_INT size;
+} BSPEndOfFile;
+typedef struct pof_bsp_vertex
+{
+	POF_VECTOR point;
+	POF_VECTOR *normals;
+} BSPVertex;
+typedef struct pof_bsp_flatpoly
+{
+	POF_INT id;
+	POF_INT size;
+	POF_INT n_verts;
+	POF_INT n_norms;
+	POF_INT offset;
+	POF_CHAR *norm_counts;
+	BSPVertex *vertex_data;
+} BSPFlatPolygon;
+typedef struct pof_bsp_textured_vertex
+{
+	POF_SHORT vert_num;
+	POF_SHORT norm_num;
+	POF_FLOAT u;
+	POF_FLOAT v;
+} BSPTexturedVertex;
+typedef struct  pof_bsp_tmappoly
+{
+	POF_INT id;
+	POF_INT size;
+	POF_VECTOR normal;
+	POF_VECTOR center;
+	POF_FLOAT radius;
+	POF_INT n_verts;
+	POF_INT tmap_num;
+	BSPTexturedVertex *vertex_data;
+} BSPTexturedPolygon;
+typedef struct pof_bsp_sortnorm
+{
+	POF_INT id;
+	POF_INT size;
+	POF_VECTOR plane_normal;
+	POF_VECTOR plane_point;
+	POF_INT reserved;
+	POF_INT offset_front;
+	POF_INT offset_back;
+	POF_INT offset_prelist;
+	POF_INT offset_postlist;
+	POF_INT offset_online;
+	POF_VECTOR bounding_min;
+	POF_VECTOR bounding_max;
+} BSPSortNormal;
+typedef struct pof_bsp_boundbox
+{
+	POF_INT id;
+	POF_INT size;
+	POF_VECTOR min;
+	POF_VECTOR max;
+} BSPBoundBox;
 
 /* debug functions in C style for those structs */
 #define INDENT(num) {for (unsigned int i = 0; i < num; ++i) putchar('\t');}
