@@ -60,7 +60,7 @@ typedef struct pof_bsp_flatpoly
 	POF_CHAR *norm_counts;
 	BSPVertex *vertex_data;
 } BSPFlatPolygon;
-typedef struct pof_bsp_textured_vertex
+typedef struct pof_bsp_tmapvertex
 {
 	POF_SHORT vert_num;
 	POF_SHORT norm_num;
@@ -121,5 +121,13 @@ void	pof_chunk_hdr2_clean(POFObject *obj);
 int	pof_chunk_obj2_build(POFSubObject *obj, irr::io::IReadFile *file);
 void	pof_chunk_obj2_print(POFSubObject *obj, unsigned int indent);
 void	pof_chunk_obj2_clean(POFSubObject *obj);
+
+void	pof_bsp_eof_print(BSPEndOfFile *obj, unsigned int indent);
+void	pof_bsp_vertex_print(BSPVertex *obj, unsigned int indent);
+void	pof_bsp_flatpoly_print(BSPFlatPolygon *obj, unsigned int indent);
+void	pof_bsp_tmapvertex_print(BSPTexturedVertex *obj, unsigned int indent);
+void	pof_bsp_tmappoly_print(BSPTexturedPolygon *obj, unsigned int indent);
+void	pof_bsp_sortnorm_print(BSPSortNormal *obj, unsigned int indent);
+void	pof_bsp_boundbox_print(BSPBoundBox *obj, unsigned int indent);
 
 #endif
