@@ -107,25 +107,25 @@ typedef struct  pof_bsp_tmappoly
 } BSPTexturedPolygon;
 typedef struct pof_bsp_sortnorm
 {
-	POF_INT		*id;
-	POF_INT		*size;
-	POF_VECTOR	*plane_normal;
-	POF_VECTOR	*plane_point;
-	POF_INT		*reserved;
-	POF_INT		*offset_front;
-	POF_INT		*offset_back;
-	POF_INT		*offset_prelist;
-	POF_INT		*offset_postlist;
-	POF_INT		*offset_online;
-	POF_VECTOR	*bounding_min;
-	POF_VECTOR	*bounding_max;
+	POF_INT		id;
+	POF_INT		size;
+	POF_VECTOR	plane_normal;
+	POF_VECTOR	plane_point;
+	POF_INT		reserved;
+	POF_INT		offset_front;
+	POF_INT		offset_back;
+	POF_INT		offset_prelist;
+	POF_INT		offset_postlist;
+	POF_INT		offset_online;
+	POF_VECTOR	bounding_min;
+	POF_VECTOR	bounding_max;
 } BSPSortNormal;
 typedef struct pof_bsp_boundbox
 {
-	POF_INT		*id;
-	POF_INT		*size;
-	POF_VECTOR	*min;
-	POF_VECTOR	*max;
+	POF_INT		id;
+	POF_INT		size;
+	POF_VECTOR	min;
+	POF_VECTOR	max;
 } BSPBoundBox;
 
 /* debug functions in C style for those structs */
@@ -168,10 +168,8 @@ void	pof_bsp_tmapvertex_print	(BSPTexturedVertex *obj, unsigned int indent);
 int	pof_bsp_tmappoly_index		(BSPTexturedPolygon *obj, const void *buffer);
 void	pof_bsp_tmappoly_print		(BSPTexturedPolygon *obj, unsigned int indent);
 
-int	pof_bsp_sortnorm_index		(BSPSortNormal *obj, const void *buffer);
 void	pof_bsp_sortnorm_print		(BSPSortNormal *obj, unsigned int indent);
 
-int	pof_bsp_boundbox_index		(BSPBoundBox *obj, const void *buffer);
 void	pof_bsp_boundbox_print		(BSPBoundBox *obj, unsigned int indent);
 
 #endif
