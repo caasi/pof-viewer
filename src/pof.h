@@ -40,65 +40,92 @@ typedef struct pof_chunk_obj2
 } POFSubObject;
 
 /* IDTA */
+#define BSP_ID		POF_INT
+#define BSP_EOF		0
+#define BSP_DEFPOINTS	1
+#define BSP_FLATPOLY	2
+#define BSP_TMAPOLY	3
+#define BSP_SORTNORM	4
+#define BSP_BOUNDBOX	5
+
 typedef struct pof_bsp_eof
 {
-	POF_INT		id;
-	POF_INT		size;
+	POF_INT		*id;
+	POF_INT		*size;
 } BSPEndOfFile;
 typedef struct pof_bsp_vertex
 {
-	POF_VECTOR	point;
+	POF_VECTOR	*point;
 	POF_VECTOR	*normals;
 } BSPVertex;
+typedef struct pof_bsp_vertices
+{
+	POF_INT		*id;
+	POF_INT		*size;
+	POF_INT		*n_verts;
+	POF_INT		*n_norms;
+	POF_INT		*offset;
+	POF_CHAR	*norm_counts;
+	BSPVertex	**vertex_data;
+} BSPVertices;
+typedef struct pof_bsp_flatvertex
+{
+	POF_SHORT	*vert_num;
+	POF_SHORT	*norm_num;
+} BSPFlatVertex;
 typedef struct pof_bsp_flatpoly
 {
-	POF_INT		id;
-	POF_INT		size;
-	POF_INT		n_verts;
-	POF_INT		n_norms;
-	POF_INT		offset;
-	POF_CHAR	*norm_counts;
-	BSPVertex	*vertex_data;
+	POF_INT		*id;
+	POF_INT		*size;
+	POF_VECTOR	*normal;
+	POF_VECTOR	*center;
+	POF_FLOAT	*radius;
+	POF_INT		*n_verts;
+	POF_UBYTE	*red;
+	POF_UBYTE	*green;
+	POF_UBYTE	*blue;
+	POF_UBYTE	*pad;
+	BSPFlatVertex	*vertex_data;
 } BSPFlatPolygon;
 typedef struct pof_bsp_tmapvertex
 {
-	POF_SHORT	vert_num;
-	POF_SHORT	norm_num;
-	POF_FLOAT	u;
-	POF_FLOAT	v;
+	POF_USHORT	*vert_num;
+	POF_USHORT	*norm_num;
+	POF_FLOAT	*u;
+	POF_FLOAT	*v;
 } BSPTexturedVertex;
 typedef struct  pof_bsp_tmappoly
 {
-	POF_INT			id;
-	POF_INT			size;
-	POF_VECTOR		normal;
-	POF_VECTOR		center;
-	POF_FLOAT		radius;
-	POF_INT			n_verts;
-	POF_INT			tmap_num;
+	POF_INT			*id;
+	POF_INT			*size;
+	POF_VECTOR		*normal;
+	POF_VECTOR		*center;
+	POF_FLOAT		*radius;
+	POF_INT			*n_verts;
+	POF_INT			*tmap_num;
 	BSPTexturedVertex	*vertex_data;
 } BSPTexturedPolygon;
 typedef struct pof_bsp_sortnorm
 {
-	POF_INT		id;
-	POF_INT		size;
-	POF_VECTOR	plane_normal;
-	POF_VECTOR	plane_point;
-	POF_INT		reserved;
-	POF_INT		offset_front;
-	POF_INT		offset_back;
-	POF_INT		offset_prelist;
-	POF_INT		offset_postlist;
-	POF_INT		offset_online;
-	POF_VECTOR	bounding_min;
-	POF_VECTOR	bounding_max;
+	POF_INT		*id;
+	POF_INT		*size;
+	POF_VECTOR	*plane_normal;
+	POF_VECTOR	*plane_point;
+	POF_INT		*reserved;
+	POF_INT		*offset_front;
+	POF_INT		*offset_back;
+	POF_INT		*offset_prelist;
+	POF_INT		*offset_postlist;
+	POF_INT		*offset_online;
+	POF_VECTOR	*bounding_min;
+	POF_VECTOR	*bounding_max;
 } BSPSortNormal;
 typedef struct pof_bsp_boundbox
 {
-	POF_INT		id;
-	POF_INT		size;
-	POF_VECTOR	min;
-	POF_VECTOR	max;
+	POF_INT		*id;
+	POF_INT		*size;
+	POF_VECTOR	*min;
+	POF_VECTOR	*max;
 } BSPBoundBox;
 
 /* debug functions in C style for those structs */
@@ -122,8 +149,19 @@ int	pof_chunk_obj2_build		(POFSubObject *obj, irr::io::IReadFile *file);
 void	pof_chunk_obj2_print		(POFSubObject *obj, unsigned int indent);
 void	pof_chunk_obj2_clean		(POFSubObject *obj);
 
+BSP_ID	pof_bsp_test			(void *buffer);
+
+int	pof_bsp_eof_index		(BSPEndOfFile *obj, const void *buffer);
 void	pof_bsp_eof_print		(BSPEndOfFile *obj, unsigned int indent);
-void	pof_bsp_vertex_print		(BSPVertex *obj, unsigned int indent);
+
+int	pof_bsp_vertex_index		(BSPVertex *obj, POF_INT length,  const void *buffer);
+void	pof_bsp_vertex_print		(BSPVertex *obj, POF_INT length, unsigned int indent);
+
+int	pof_bsp_vertices_index		(BSPVertices *obj, const void *buffer);
+void	pof_bsp_vertices_print		(BSPVertices *obj, unsigned int indent);
+void	pof_bsp_vertices_clean		(BSPVertices *obj);
+
+void	pof_bsp_flatvertex_print	(BSPFlatVertex *obj, unsigned int indent);
 void	pof_bsp_flatpoly_print		(BSPFlatPolygon *obj, unsigned int indent);
 void	pof_bsp_tmapvertex_print	(BSPTexturedVertex *obj, unsigned int indent);
 void	pof_bsp_tmappoly_print		(BSPTexturedPolygon *obj, unsigned int indent);
