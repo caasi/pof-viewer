@@ -50,8 +50,8 @@ typedef struct pof_chunk_obj2
 
 typedef struct pof_bsp_eof
 {
-	POF_INT		*id;
-	POF_INT		*size;
+	POF_INT		id;
+	POF_INT		size;
 } BSPEndOfFile;
 typedef struct pof_bsp_vertex
 {
@@ -151,7 +151,6 @@ void	pof_chunk_obj2_clean		(POFSubObject *obj);
 
 BSP_ID	pof_bsp_test			(void *buffer);
 
-int	pof_bsp_eof_index		(BSPEndOfFile *obj, const void *buffer);
 void	pof_bsp_eof_print		(BSPEndOfFile *obj, unsigned int indent);
 
 int	pof_bsp_vertex_index		(BSPVertex *obj, POF_INT length,  const void *buffer);
@@ -162,10 +161,17 @@ void	pof_bsp_vertices_print		(BSPVertices *obj, unsigned int indent);
 void	pof_bsp_vertices_clean		(BSPVertices *obj);
 
 void	pof_bsp_flatvertex_print	(BSPFlatVertex *obj, unsigned int indent);
+int	pof_bsp_flatpoly_index		(BSPFlatPolygon *obj, const void *buffer);
 void	pof_bsp_flatpoly_print		(BSPFlatPolygon *obj, unsigned int indent);
+
 void	pof_bsp_tmapvertex_print	(BSPTexturedVertex *obj, unsigned int indent);
+int	pof_bsp_tmappoly_index		(BSPTexturedPolygon *obj, const void *buffer);
 void	pof_bsp_tmappoly_print		(BSPTexturedPolygon *obj, unsigned int indent);
+
+int	pof_bsp_sortnorm_index		(BSPSortNormal *obj, const void *buffer);
 void	pof_bsp_sortnorm_print		(BSPSortNormal *obj, unsigned int indent);
+
+int	pof_bsp_boundbox_index		(BSPBoundBox *obj, const void *buffer);
 void	pof_bsp_boundbox_print		(BSPBoundBox *obj, unsigned int indent);
 
 #endif
