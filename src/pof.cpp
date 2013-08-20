@@ -191,9 +191,7 @@ void pof_chunk_hdr2_clean(POFObject *obj)
 
 int pof_chunk_obj2_build(POFSubObject *obj, irr::io::IReadFile *file)
 {
-	int	bytes_read = 0,
-		offset = 0,
-		type = -1;
+	int	bytes_read = 0;
 
 	bytes_read += file->read(&obj->id, sizeof(POF_INT));
 	bytes_read += file->read(&obj->radius, sizeof(POF_FLOAT));
@@ -210,61 +208,6 @@ int pof_chunk_obj2_build(POFSubObject *obj, irr::io::IReadFile *file)
 	bytes_read += file->read(&obj->bsp_data_size, sizeof(POF_INT));
 	obj->bsp_data = new POF_UBYTE [obj->bsp_data_size];
 	bytes_read += file->read(obj->bsp_data, obj->bsp_data_size);
-
-	offset = 0;
-
-	while (true)
-	{
-		type = pof_bsp_test(obj->bsp_data + offset);
-
-		switch(type)
-		{
-			case BSP_EOF:
-				pof_bsp_eof_print((BSPEndOfFile *)(obj->bsp_data + offset), 1);
-				offset += sizeof(BSPEndOfFile);
-				break;
-			case BSP_DEFPOINTS:
-			{
-				BSPVertices *node = new BSPVertices;
-				offset += pof_bsp_vertices_index(node, obj->bsp_data + offset);
-				pof_bsp_vertices_print(node, 1);
-				delete node;
-				break;
-			}
-			case BSP_FLATPOLY:
-			{
-				BSPFlatPolygon *node = new BSPFlatPolygon;
-				offset += pof_bsp_flatpoly_index(node, obj->bsp_data + offset);
-				pof_bsp_flatpoly_print(node, 1);
-				delete node;
-				break;
-			}
-			case BSP_TMAPOLY:
-			{
-				BSPTexturedPolygon *node = new BSPTexturedPolygon;
-				offset += pof_bsp_tmappoly_index(node, obj->bsp_data + offset);
-				pof_bsp_tmappoly_print(node, 1);
-				delete node;
-				break;
-			}
-			case BSP_SORTNORM:
-			{
-				pof_bsp_sortnorm_print((BSPSortNormal *)(obj->bsp_data + offset), 1);
-				offset += sizeof(BSPSortNormal);
-				break;
-			}
-			case BSP_BOUNDBOX:
-			{
-				pof_bsp_boundbox_print((BSPBoundBox *)(obj->bsp_data + offset), 1);
-				offset += sizeof(BSPBoundBox);
-				break;
-			}
-			default:
-				assert(false);
-		}
-
-		if (BSP_EOF == type) break;
-	}
 
 	return bytes_read;
 }
@@ -316,6 +259,8 @@ void pof_chunk_obj2_print(POFSubObject *obj, unsigned int indent)
 	INDENT(indent);
 	printf("bsp data size:\t%d\n", obj->bsp_data_size);
 
+	pof_bsp_print((BSPBlock *)obj->bsp_data, indent + 1);
+
 	return;
 }
 
@@ -328,10 +273,67 @@ void pof_chunk_obj2_clean(POFSubObject *obj)
 	return;
 }
 
-BSP_ID pof_bsp_test(void *buffer)
+BSP_ID pof_bsp_test(BSPBlock *block)
 {
 	// return the id of current bsp data id
-	return *(BSP_ID *)buffer;
+	return *(BSP_ID *)block;
+}
+
+void pof_bsp_print(BSPBlock *block, unsigned int indent)
+{
+	int offset = 0,
+	    type = -1;
+
+	while (true)
+	{
+		BSPBlock *current = (BSPBlock *)(block + offset);
+
+		switch(current->id)
+		{
+			case BSP_EOF:
+				pof_bsp_eof_print(current, indent + 1);
+				break;
+			case BSP_DEFPOINTS:
+			{
+				BSPVertices *node = new BSPVertices;
+				pof_bsp_vertices_index(node, block + offset);
+				pof_bsp_vertices_print(node, indent + 1);
+				delete node;
+				break;
+			}
+			case BSP_FLATPOLY:
+				pof_bsp_flatpoly_print((BSPFlatPolygon *)current, indent + 1);
+				break;
+			case BSP_TMAPOLY:
+				pof_bsp_tmappoly_print((BSPTexturedPolygon *)current, indent + 1);
+				break;
+			case BSP_SORTNORM:
+			{
+				BSPSortNormal *node = (BSPSortNormal *)current;
+				pof_bsp_sortnorm_print(node, indent + 1);
+
+				if (node->prelist) pof_bsp_print((BSPBlock *)(node + node->prelist), indent + 1);
+				if (node->backlist) pof_bsp_print((BSPBlock *)(node + node->backlist), indent + 1);
+				if (node->onlist) pof_bsp_print((BSPBlock *)(node + node->onlist), indent + 1);
+				if (node->frontlist) pof_bsp_print((BSPBlock *)(node + node->frontlist), indent + 1);
+				if (node->postlist) pof_bsp_print((BSPBlock *)(node + node->postlist), indent + 1);
+
+				break;
+			}
+			case BSP_BOUNDBOX:
+				pof_bsp_boundbox_print((BSPBoundBox *)current, indent + 1);
+				break;
+			default:
+				printf("unexpect block id: %d\n", current->id);
+				assert(false);
+		}
+
+		if (BSP_EOF == current->id) break;
+
+		offset += current->size;
+	}
+
+	return;
 }
 
 void pof_bsp_eof_print(BSPEndOfFile *obj, unsigned int indent)
@@ -392,7 +394,7 @@ int pof_bsp_vertices_index (BSPVertices *obj, const void *buffer)
 	obj->offset = (POF_INT *)(buffer + offset);
 	offset += sizeof(POF_INT);
 
-	obj->norm_counts = (POF_CHAR *)(buffer + offset);
+	obj->norm_counts = (POF_UBYTE *)(buffer + offset);
 	/* important! it's not += obj->offset */
 	offset = *obj->offset;
 
@@ -409,6 +411,8 @@ int pof_bsp_vertices_index (BSPVertices *obj, const void *buffer)
 
 void pof_bsp_vertices_print (BSPVertices *obj, unsigned int indent)
 {
+	POF_INT norm_count = 0;
+
 	INDENT(indent);
 	printf("bsp id:\t%d\n", *obj->id);
 
@@ -428,12 +432,16 @@ void pof_bsp_vertices_print (BSPVertices *obj, unsigned int indent)
 	printf("norm_counts:\n");
 	for (int i = 0; i < *obj->n_verts; ++i) {
 		printf("%u ", obj->norm_counts[i]);
+		norm_count += obj->norm_counts[i];
 	}
+	assert(*obj->n_norms == norm_count);
 	putchar('\n');
 
 	INDENT(indent);
 	printf("vertices data:\n");
 	for (int i = 0; i < *obj->n_verts; ++i) {
+		INDENT(indent + 1);
+		printf("(%d)\n", i);
 		pof_bsp_vertex_print(obj->vertex_data[i], obj->norm_counts[i], indent + 1);
 	}
 
@@ -458,14 +466,15 @@ void pof_bsp_vertices_clean (BSPVertices *obj)
 void pof_bsp_flatvertex_print (BSPFlatVertex *obj, unsigned int indent)
 {
 	INDENT(indent);
-	printf("vert num:\t%d\n", *obj->vert_num);
+	printf("vert num:\t%d\n", obj->vert_num);
 
 	INDENT(indent);
-	printf("norm num:\t%d\n", *obj->norm_num);
+	printf("norm num:\t%d\n", obj->norm_num);
 
 	return;
 }
 
+/*
 int pof_bsp_flatpoly_index (BSPFlatPolygon *obj, const void *buffer)
 {
 	int offset = 0;
@@ -502,35 +511,36 @@ int pof_bsp_flatpoly_index (BSPFlatPolygon *obj, const void *buffer)
 
 	return offset;
 }
+*/
 
 void pof_bsp_flatpoly_print (BSPFlatPolygon *obj, unsigned int indent)
 {
 	INDENT(indent);
-	printf("bsp id:\t%d\n", *obj->id);
+	printf("bsp id:\t%d\n", obj->id);
 
 	INDENT(indent);
-	printf("size:\t%d\n", *obj->size);
+	printf("size:\t%d\n", obj->size);
 
 	INDENT(indent);
 	printf("normal:\n");
-	pof_vector_print(obj->normal, indent);
+	pof_vector_print(&obj->normal, indent);
 
 	INDENT(indent);
 	printf("center:\n");
-	pof_vector_print(obj->center, indent);
+	pof_vector_print(&obj->center, indent);
 
 	INDENT(indent);
-	printf("radius:\t%f\n", *obj->radius);
+	printf("radius:\t%f\n", obj->radius);
 
 	INDENT(indent);
-	printf("n_verts:\t%d\n", *obj->n_verts);
+	printf("n_verts:\t%d\n", obj->n_verts);
 
 	INDENT(indent);
-	printf("rga:\t\t%x, %x, %x\n", *obj->red, *obj->green, *obj->blue);
+	printf("rga:\t\t%x, %x, %x\n", obj->red, obj->green, obj->blue);
 
 	INDENT(indent);
 	printf("vertices data:\n");
-	for (int i = 0; i < *obj->n_verts; ++i) {
+	for (int i = 0; i < obj->n_verts; ++i) {
 		pof_bsp_flatvertex_print(&(obj->vertex_data[i]), indent + 1);
 	}
 
@@ -540,17 +550,18 @@ void pof_bsp_flatpoly_print (BSPFlatPolygon *obj, unsigned int indent)
 void pof_bsp_tmapvertex_print (BSPTexturedVertex *obj, unsigned int indent)
 {
 	INDENT(indent);
-	printf("vert_num:\t%u\n", *obj->vert_num);
+	printf("vert_num:\t%u\n", obj->vert_num);
 
 	INDENT(indent);
-	printf("norm_num:\t%u\n", *obj->norm_num);
+	printf("norm_num:\t%u\n", obj->norm_num);
 
 	INDENT(indent);
-	printf("uv:\t\t%f, %f\n", *obj->u, *obj->v);
+	printf("uv:\t\t%f, %f\n", obj->u, obj->v);
 
 	return;
 }
 
+/*
 int pof_bsp_tmappoly_index (BSPTexturedPolygon *obj, const void *buffer)
 {
 	int offset = 0;
@@ -581,35 +592,36 @@ int pof_bsp_tmappoly_index (BSPTexturedPolygon *obj, const void *buffer)
 
 	return offset;
 }
+*/
 
 void pof_bsp_tmappoly_print (BSPTexturedPolygon *obj, unsigned int indent)
 {
 	INDENT(indent);
-	printf("bsp id:\t%d\n", *obj->id);
+	printf("bsp id:\t%d\n", obj->id);
 
 	INDENT(indent);
-	printf("size:\t%d\n", *obj->size);
+	printf("size:\t%d\n", obj->size);
 
 	INDENT(indent);
 	printf("normal:\n");
-	pof_vector_print(obj->normal, indent);
+	pof_vector_print(&obj->normal, indent);
 
 	INDENT(indent);
 	printf("center:\n");
-	pof_vector_print(obj->center, indent);
+	pof_vector_print(&obj->center, indent);
 
 	INDENT(indent);
-	printf("radius:\t%f\n", *obj->radius);
+	printf("radius:\t%f\n", obj->radius);
 
 	INDENT(indent);
-	printf("n_verts:\t%d\n", *obj->n_verts);
+	printf("n_verts:\t%d\n", obj->n_verts);
 
 	INDENT(indent);
-	printf("tmap_num:\t%d\n", *obj->tmap_num);
+	printf("tmap_num:\t%d\n", obj->tmap_num);
 
 	INDENT(indent);
 	printf("vertices data:\n");
-	for (int i = 0; i < *obj->n_verts; ++i) {
+	for (int i = 0; i < obj->n_verts; ++i) {
 		pof_bsp_tmapvertex_print(&(obj->vertex_data[i]), indent + 1);
 	}
 	return;
@@ -635,16 +647,19 @@ void pof_bsp_sortnorm_print (BSPSortNormal *obj, unsigned int indent)
 	printf("reserved:\t%d\n", obj->reserved);
 
 	INDENT(indent);
-	printf("offset front:\t%d\n", obj->offset_front);
+	printf("offset front:\t%d\n", obj->frontlist);
 
 	INDENT(indent);
-	printf("offset back:\t%d\n", obj->offset_back);
+	printf("offset back:\t%d\n", obj->backlist);
 
 	INDENT(indent);
-	printf("offset prelist:\t%d\n", obj->offset_prelist);
+	printf("offset prelist:\t%d\n", obj->prelist);
 
 	INDENT(indent);
-	printf("offset postlist:\t%d\n", obj->offset_postlist);
+	printf("offset postlist:\t%d\n", obj->postlist);
+
+	INDENT(indent);
+	printf("offset onlist:\t%d\n", obj->onlist);
 
 	INDENT(indent);
 	printf("min bounding:\n");
