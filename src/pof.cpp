@@ -5,6 +5,7 @@
 #include "pof.h"
 #include "IReadFile.h"
 
+/*
 int pof_string_read(POF_STRING *str, irr::io::IReadFile *file)
 {
 	int bytes_read = 0;
@@ -18,6 +19,7 @@ int pof_string_read(POF_STRING *str, irr::io::IReadFile *file)
 
 	return bytes_read;
 }
+*/
 
 void pof_string_print(POF_STRING *str, unsigned int indent)
 {
@@ -31,12 +33,14 @@ void pof_string_print(POF_STRING *str, unsigned int indent)
 	return;
 }
 
+/*
 void pof_string_clean(POF_STRING *str)
 {
 	if (str->text) delete [] str->text;
 
 	return;
 }
+*/
 
 void pof_vector_print(POF_VECTOR *v, unsigned int indent)
 {
@@ -76,6 +80,7 @@ void pof_chunk_header_print(POFChunkHeader *header, unsigned int indent)
 	printf("chunk length:\t%u\n", header->length);
 }
 
+/*
 int pof_chunk_hdr2_build(POFObject *obj, irr::io::IReadFile *file)
 {
 	int byte_read = 0;
@@ -115,50 +120,106 @@ int pof_chunk_hdr2_build(POFObject *obj, irr::io::IReadFile *file)
 
 	return byte_read;
 }
+*/
+
+int pof_chunk_hdr2_index(POFObject *obj, const void *buffer)
+{
+	int offset = 0;
+
+	obj->max_radius = (POF_FLOAT *)(buffer + offset);
+	offset += sizeof(POF_FLOAT);
+
+	obj->obj_flags = (POF_INT *)(buffer + offset);
+	offset += sizeof(POF_INT);
+
+	obj->num_subobjects = (POF_INT *)(buffer + offset);
+	offset += sizeof(POF_INT);
+
+	obj->bounding_min = (POF_VECTOR *)(buffer + offset);
+	offset += sizeof(POF_VECTOR);
+
+	obj->bounding_max = (POF_VECTOR *)(buffer + offset);
+	offset += sizeof(POF_VECTOR);
+
+	obj->num_detail_levels = (POF_INT *)(buffer + offset);
+	offset += sizeof(POF_INT);
+	
+	obj->sobj_detail_levels = (POF_INT *)(buffer + offset);
+	offset += sizeof(POF_INT) * *obj->num_detail_levels;
+
+	obj->num_debris = (POF_INT *)(buffer + offset);
+	offset += sizeof(POF_INT);
+
+	obj->sobj_debris = (POF_INT *)(buffer + offset);
+	offset += sizeof(POF_INT) * *obj->num_debris;
+
+	obj->mass = (POF_FLOAT *)(buffer + offset);
+	offset += sizeof(POF_FLOAT);
+
+	obj->mass_center = (POF_VECTOR *)(buffer + offset);
+	offset += sizeof(POF_VECTOR);
+
+	obj->moment_inertia = (POF_FLOAT *)(buffer + offset);
+	offset += sizeof(POF_FLOAT) * 9;
+
+	obj->num_cross_sections = (POF_INT *)(buffer + offset);
+	offset += sizeof(POF_INT);
+
+	obj->cross_sections = (POFChunkCrossSection *)(buffer + offset);
+	offset += sizeof(POFChunkCrossSection) * *obj->num_cross_sections;
+
+	obj->num_lights = (POF_INT *)(buffer + offset);
+	offset += sizeof(POF_INT);
+
+	obj->lights = (POFChunkLight *)(buffer + offset);
+	offset += sizeof(POFChunkLight) * *obj->num_lights;
+
+	return offset;
+}
 
 void pof_chunk_hdr2_print(POFObject *obj, unsigned int indent)
 {
 	INDENT(indent);
-	printf("max radius:\t%f\n", obj->max_radius);
+	printf("max radius:\t%f\n", *obj->max_radius);
 
 	INDENT(indent);
-	printf("obj flags:\t%x\n", obj->obj_flags);
+	printf("obj flags:\t%x\n", *obj->obj_flags);
 
 	INDENT(indent);
-	printf("sobj count:\t%d\n", obj->num_subobjects);
+	printf("sobj count:\t%d\n", *obj->num_subobjects);
 
 	INDENT(indent);
 	printf("min bounding:\n");
-	pof_vector_print(&obj->bounding_min, indent);
+	pof_vector_print(obj->bounding_min, indent);
 
 	INDENT(indent);
 	printf("max bounding:\n");
-	pof_vector_print(&obj->bounding_max, indent);
+	pof_vector_print(obj->bounding_max, indent);
 
 	INDENT(indent);
-	printf("detail levels:\t%d\n", obj->num_detail_levels);
-	for (int i = 0; i < obj->num_detail_levels; ++i) {
+	printf("detail levels:\t%d\n", *obj->num_detail_levels);
+	for (int i = 0; i < *obj->num_detail_levels; ++i) {
 		INDENT(indent);
 		printf("\t%d\n", obj->sobj_detail_levels[i]);
 	}
 
 	INDENT(indent);
-	printf("debris count:\t%d\n", obj->num_debris);
-	for (int i = 0; i < obj->num_debris; ++i) {
+	printf("debris count:\t%d\n", *obj->num_debris);
+	for (int i = 0; i < *obj->num_debris; ++i) {
 		INDENT(indent);
 		printf("\t%d\n", obj->sobj_debris[i]);
 	}
 
 	INDENT(indent);
-	printf("mass:\t\t%f\n", obj->mass);
+	printf("mass:\t\t%f\n", *obj->mass);
 
 	INDENT(indent);
 	printf("mass center:\n");
-	pof_vector_print(&obj->mass_center, indent);
+	pof_vector_print(obj->mass_center, indent);
 
 	INDENT(indent);
-	printf("cross sections:\t%d\n", obj->num_cross_sections);
-	for (int i = 0; i < obj->num_cross_sections; ++i) {
+	printf("cross sections:\t%d\n", *obj->num_cross_sections);
+	for (int i = 0; i < *obj->num_cross_sections; ++i) {
 		POFChunkCrossSection *section = &(obj->cross_sections[i]);
 		INDENT(indent);
 		printf("\tdepth:\t%f\n", section->depth);
@@ -167,8 +228,8 @@ void pof_chunk_hdr2_print(POFObject *obj, unsigned int indent)
 	}
 
 	INDENT(indent);
-	printf("lights:\t%d\n", obj->num_lights);
-	for (int i = 0; i < obj->num_lights; ++i) {
+	printf("lights:\t%d\n", *obj->num_lights);
+	for (int i = 0; i < *obj->num_lights; ++i) {
 		POFChunkLight *light = &(obj->lights[i]);
 		INDENT(indent + 1);
 		printf("type:\t%d\n", light->light_type);
@@ -180,6 +241,7 @@ void pof_chunk_hdr2_print(POFObject *obj, unsigned int indent)
 	return;
 }
 
+/*
 void pof_chunk_hdr2_clean(POFObject *obj)
 {
 	if (obj->lights) delete [] obj->lights;
@@ -188,7 +250,9 @@ void pof_chunk_hdr2_clean(POFObject *obj)
 
 	return;
 }
+*/
 
+/*
 int pof_chunk_obj2_build(POFSubObject *obj, irr::io::IReadFile *file)
 {
 	int	bytes_read = 0;
@@ -211,59 +275,110 @@ int pof_chunk_obj2_build(POFSubObject *obj, irr::io::IReadFile *file)
 
 	return bytes_read;
 }
+*/
+
+int pof_chunk_obj2_index(POFSubObject *obj, const void *buffer)
+{
+	int offset = 0;
+
+	obj->id = (POF_INT *)(buffer + offset);
+	offset += sizeof(POF_INT);
+
+	obj->radius = (POF_FLOAT *)(buffer + offset);
+	offset += sizeof(POF_FLOAT);
+
+	obj->parent = (POF_INT *)(buffer + offset);
+	offset += sizeof(POF_INT);
+
+	obj->offset = (POF_VECTOR *)(buffer + offset);
+	offset += sizeof(POF_VECTOR);
+
+	obj->geometric_center = (POF_VECTOR *)(buffer + offset);
+	offset += sizeof(POF_VECTOR);
+
+	obj->bounding_max = (POF_VECTOR *)(buffer + offset);
+	offset += sizeof(POF_VECTOR);
+
+	obj->bounding_min = (POF_VECTOR *)(buffer + offset);
+	offset += sizeof(POF_VECTOR);
+
+	obj->name = (POF_STRING *)(buffer + offset);
+	offset += sizeof(POF_INT) + sizeof(POF_CHAR) * obj->name->length;
+
+	obj->properties = (POF_STRING *)(buffer + offset);
+	offset += sizeof(POF_INT) + sizeof(POF_CHAR) * obj->properties->length;
+
+	obj->movement_type = (POF_INT *)(buffer + offset);
+	offset += sizeof(POF_INT);
+
+	obj->movement_axis = (POF_INT *)(buffer + offset);
+	offset += sizeof(POF_INT);
+
+	obj->reserved = (POF_INT *)(buffer + offset);
+	offset += sizeof(POF_INT);
+
+	obj->bsp_data_size = (POF_INT *)(buffer + offset);
+	offset += sizeof(POF_INT);
+
+	obj->bsp_data = (POF_UBYTE *)(buffer + offset);
+	offset += sizeof(POF_UBYTE) * *obj->bsp_data_size;
+
+	return offset;
+}
 
 void pof_chunk_obj2_print(POFSubObject *obj, unsigned int indent)
 {
 	INDENT(indent);
-	printf("subobject id:\t%d\n", obj->id);
+	printf("subobject id:\t%d\n", *obj->id);
 
 	INDENT(indent);
-	printf("radius:\t%f\n", obj->radius);
+	printf("radius:\t%f\n", *obj->radius);
 
 	INDENT(indent);
-	printf("parent id:\t%d\n", obj->parent);
+	printf("parent id:\t%d\n", *obj->parent);
 
 	INDENT(indent);
 	printf("offset:\n");
-	pof_vector_print(&obj->bounding_min, indent);
+	pof_vector_print(obj->bounding_min, indent);
 
 	INDENT(indent);
 	printf("center:\n");
-	pof_vector_print(&obj->geometric_center, indent);
+	pof_vector_print(obj->geometric_center, indent);
 
 	INDENT(indent);
 	printf("min bounding:\n");
-	pof_vector_print(&obj->bounding_min, indent);
+	pof_vector_print(obj->bounding_min, indent);
 
 	INDENT(indent);
 	printf("max bounding:\n");
-	pof_vector_print(&obj->bounding_max, indent);
+	pof_vector_print(obj->bounding_max, indent);
 
 	INDENT(indent);
 	printf("name:\n");
-	pof_string_print(&obj->name, indent + 1);
+	pof_string_print(obj->name, indent + 1);
 
 	INDENT(indent);
 	printf("properties:\n");
-	pof_string_print(&obj->properties, indent + 1);
+	pof_string_print(obj->properties, indent + 1);
 
 	INDENT(indent);
-	printf("movement type:\t%d\n", obj->movement_type);
+	printf("movement type:\t%d\n", *obj->movement_type);
 
 	INDENT(indent);
-	printf("movement axis:\t%d\n", obj->movement_axis);
+	printf("movement axis:\t%d\n", *obj->movement_axis);
 
 	INDENT(indent);
-	printf("reserved:\t%d\n", obj->reserved);
+	printf("reserved:\t%d\n", *obj->reserved);
 
 	INDENT(indent);
-	printf("bsp data size:\t%d\n", obj->bsp_data_size);
+	printf("bsp data size:\t%d\n", *obj->bsp_data_size);
 
 	pof_bsp_print((BSPBlock *)obj->bsp_data, indent + 1);
 
 	return;
 }
 
+/*
 void pof_chunk_obj2_clean(POFSubObject *obj)
 {
 	pof_string_clean(&obj->name);
@@ -272,6 +387,7 @@ void pof_chunk_obj2_clean(POFSubObject *obj)
 
 	return;
 }
+*/
 
 BSP_ID pof_bsp_test(BSPBlock *block)
 {
@@ -281,22 +397,23 @@ BSP_ID pof_bsp_test(BSPBlock *block)
 
 void pof_bsp_print(BSPBlock *block, unsigned int indent)
 {
-	int offset = 0,
-	    type = -1;
+	int offset = 0;
 
 	while (true)
 	{
-		BSPBlock *current = (BSPBlock *)(block + offset);
+		// god damn pointer calculation
+		BSPBlock *current = (BSPBlock *)((void *)block + offset);
 
 		switch(current->id)
 		{
 			case BSP_EOF:
-				pof_bsp_eof_print(current, indent + 1);
+				pof_bsp_block_print(current, indent + 1);
+				assert(0 == current->size);
 				break;
 			case BSP_DEFPOINTS:
 			{
 				BSPVertices *node = new BSPVertices;
-				pof_bsp_vertices_index(node, block + offset);
+				pof_bsp_vertices_index(node, current);
 				pof_bsp_vertices_print(node, indent + 1);
 				delete node;
 				break;
@@ -312,11 +429,11 @@ void pof_bsp_print(BSPBlock *block, unsigned int indent)
 				BSPSortNormal *node = (BSPSortNormal *)current;
 				pof_bsp_sortnorm_print(node, indent + 1);
 
-				if (node->prelist) pof_bsp_print((BSPBlock *)(node + node->prelist), indent + 1);
-				if (node->backlist) pof_bsp_print((BSPBlock *)(node + node->backlist), indent + 1);
-				if (node->onlist) pof_bsp_print((BSPBlock *)(node + node->onlist), indent + 1);
-				if (node->frontlist) pof_bsp_print((BSPBlock *)(node + node->frontlist), indent + 1);
-				if (node->postlist) pof_bsp_print((BSPBlock *)(node + node->postlist), indent + 1);
+				if (node->prelist) pof_bsp_print((BSPBlock *)((void *)node + node->prelist), indent + 1);
+				if (node->backlist) pof_bsp_print((BSPBlock *)((void *)node + node->backlist), indent + 1);
+				if (node->onlist) pof_bsp_print((BSPBlock *)((void *)node + node->onlist), indent + 1);
+				if (node->frontlist) pof_bsp_print((BSPBlock *)((void *)node + node->frontlist), indent + 1);
+				if (node->postlist) pof_bsp_print((BSPBlock *)((void *)node + node->postlist), indent + 1);
 
 				break;
 			}
@@ -324,19 +441,25 @@ void pof_bsp_print(BSPBlock *block, unsigned int indent)
 				pof_bsp_boundbox_print((BSPBoundBox *)current, indent + 1);
 				break;
 			default:
-				printf("unexpect block id: %d\n", current->id);
-				assert(false);
+				printf("unexpect block id: %08X\n", current->id);
+				//assert(false);
 		}
 
-		if (BSP_EOF == current->id) break;
-
 		offset += current->size;
+
+		if (
+			BSP_DEFPOINTS	!=	current->id &&
+			BSP_FLATPOLY	!=	current->id &&
+			BSP_TMAPOLY	!=	current->id &&
+			BSP_SORTNORM	!=	current->id &&
+			BSP_BOUNDBOX	!=	current->id
+		) break;
 	}
 
 	return;
 }
 
-void pof_bsp_eof_print(BSPEndOfFile *obj, unsigned int indent)
+void pof_bsp_block_print(BSPBlock *obj, unsigned int indent)
 {
 	INDENT(indent);
 	printf("bsp id:\t%d\n", obj->id);
@@ -347,6 +470,7 @@ void pof_bsp_eof_print(BSPEndOfFile *obj, unsigned int indent)
 	return;
 }
 
+/*
 int pof_bsp_vertex_index (BSPVertex *obj, POF_INT length, const void *buffer)
 {
 	int offset = 0;
@@ -359,23 +483,24 @@ int pof_bsp_vertex_index (BSPVertex *obj, POF_INT length, const void *buffer)
 
 	return offset;
 }
+*/
 
 void pof_bsp_vertex_print (BSPVertex *obj, POF_INT length, unsigned int indent)
 {
 	INDENT(indent);
 	printf("point:\n");
-	pof_vector_print(obj->point, indent);
+	pof_vector_print(&obj->point, indent);
 
 	INDENT(indent);
 	printf("normals:\n");
 	for (int i = 0; i < length; ++i) {
-		pof_vector_print(&(obj->normals[i]), indent);
+		pof_vector_print((POF_VECTOR *)(&obj->normals + i), indent);
 	}
 
 	return;
 }
 
-int pof_bsp_vertices_index (BSPVertices *obj, const void *buffer)
+void pof_bsp_vertices_index (BSPVertices *obj, const void *buffer)
 {
 	int offset = 0;
 
@@ -401,23 +526,21 @@ int pof_bsp_vertices_index (BSPVertices *obj, const void *buffer)
 	obj->vertex_data = new BSPVertex* [*obj->n_verts];
 
 	for (int i = 0; i < *obj->n_verts; ++i) {
-		BSPVertex *vert = new BSPVertex;
-		obj->vertex_data[i] = vert;
-		offset += pof_bsp_vertex_index(vert, obj->norm_counts[i], (buffer + offset));
+		obj->vertex_data[i] = (BSPVertex *)(buffer + offset);
+		offset += sizeof(POF_VECTOR) * (obj->norm_counts[i] + 1);
 	}
 
-	return offset;
+	assert(offset == 20 + (*obj->n_verts) + sizeof(POF_VECTOR) * (*obj->n_verts + *obj->n_norms));
+
+	return;
 }
 
 void pof_bsp_vertices_print (BSPVertices *obj, unsigned int indent)
 {
 	POF_INT norm_count = 0;
 
-	INDENT(indent);
-	printf("bsp id:\t%d\n", *obj->id);
-
-	INDENT(indent);
-	printf("size:\t%d\n", *obj->size);
+	// not a good idea
+	pof_bsp_block_print((BSPBlock *)obj->id, indent);
 
 	INDENT(indent);
 	printf("n_verts:\t%d\n", *obj->n_verts);
@@ -429,7 +552,7 @@ void pof_bsp_vertices_print (BSPVertices *obj, unsigned int indent)
 	printf("offset:\t%d\n", *obj->offset);
 
 	INDENT(indent);
-	printf("norm_counts:\n");
+	printf("norm_counts:\t");
 	for (int i = 0; i < *obj->n_verts; ++i) {
 		printf("%u ", obj->norm_counts[i]);
 		norm_count += obj->norm_counts[i];
@@ -451,12 +574,14 @@ void pof_bsp_vertices_print (BSPVertices *obj, unsigned int indent)
 void pof_bsp_vertices_clean (BSPVertices *obj)
 {
 	if (obj->vertex_data) {
+		/*
 		for (int i = 0; i < *obj->n_verts; ++i) {
 			if (obj->vertex_data[i]) {
 				delete obj->vertex_data[i];
 				obj->vertex_data[i] = NULL;
 			}
 		}
+		*/
 		delete [] obj->vertex_data;
 	}
 
@@ -515,11 +640,7 @@ int pof_bsp_flatpoly_index (BSPFlatPolygon *obj, const void *buffer)
 
 void pof_bsp_flatpoly_print (BSPFlatPolygon *obj, unsigned int indent)
 {
-	INDENT(indent);
-	printf("bsp id:\t%d\n", obj->id);
-
-	INDENT(indent);
-	printf("size:\t%d\n", obj->size);
+	pof_bsp_block_print((BSPBlock *)obj, indent);
 
 	INDENT(indent);
 	printf("normal:\n");
@@ -596,11 +717,7 @@ int pof_bsp_tmappoly_index (BSPTexturedPolygon *obj, const void *buffer)
 
 void pof_bsp_tmappoly_print (BSPTexturedPolygon *obj, unsigned int indent)
 {
-	INDENT(indent);
-	printf("bsp id:\t%d\n", obj->id);
-
-	INDENT(indent);
-	printf("size:\t%d\n", obj->size);
+	pof_bsp_block_print((BSPBlock *)obj, indent);
 
 	INDENT(indent);
 	printf("normal:\n");
@@ -629,11 +746,7 @@ void pof_bsp_tmappoly_print (BSPTexturedPolygon *obj, unsigned int indent)
 
 void pof_bsp_sortnorm_print (BSPSortNormal *obj, unsigned int indent)
 {
-	INDENT(indent);
-	printf("bsp id:\t%d\n", obj->id);
-
-	INDENT(indent);
-	printf("size:\t%d\n", obj->size);
+	pof_bsp_block_print((BSPBlock *)obj, indent);
 
 	INDENT(indent);
 	printf("plane normal:\n");
@@ -674,11 +787,7 @@ void pof_bsp_sortnorm_print (BSPSortNormal *obj, unsigned int indent)
 
 void pof_bsp_boundbox_print (BSPBoundBox *obj, unsigned int indent)
 {
-	INDENT(indent);
-	printf("bsp id:\t%d\n", obj->id);
-
-	INDENT(indent);
-	printf("size:\t%d\n", obj->size);
+	pof_bsp_block_print((BSPBlock *)obj, indent);
 
 	INDENT(indent);
 	printf("min:\n");

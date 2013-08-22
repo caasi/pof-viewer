@@ -35,7 +35,8 @@ bool CPOFMeshFileLoader::isALoadableFileExtension(const io::path& filename) cons
 IAnimatedMesh* CPOFMeshFileLoader::createMesh(io::IReadFile* file)
 {
 	long int size = 0;
-	int bytes_read = 0;
+	int offset = 0;
+	POF_UBYTE *buffer = NULL;
 
 	if (this->pofHeader) delete this->pofHeader;
 	this->pofHeader = new POFHeader();
@@ -46,22 +47,20 @@ IAnimatedMesh* CPOFMeshFileLoader::createMesh(io::IReadFile* file)
 	size = file->getSize();
 	cout << "file size:\t" << size << endl;
 
+	buffer = new POF_UBYTE [size];
+	file->read(buffer, size);
+
 	do {
-		bytes_read = 0;
+		POFChunkHeader* chunk_header = (POFChunkHeader *)(buffer + offset);
+		offset += sizeof(POFChunkHeader);
 
-		POFChunkHeader* chunk_header = NULL;
-		chunk_header = new POFChunkHeader;
-
-		file->read(chunk_header, sizeof(POFChunkHeader));
-	
 		if (chunk_header->chunk_id == ID_HDR2) {
 			pof_chunk_header_print(chunk_header, 0);
 			
 			POFObject *pof_obj = new POFObject;
 
-			bytes_read = pof_chunk_hdr2_build(pof_obj, file);
+			pof_chunk_hdr2_index(pof_obj, buffer + offset);
 			pof_chunk_hdr2_print(pof_obj, 0);
-			pof_chunk_hdr2_clean(pof_obj);
 
 			delete pof_obj;
 		} else if (chunk_header->chunk_id == ID_OBJ2) {
@@ -69,17 +68,16 @@ IAnimatedMesh* CPOFMeshFileLoader::createMesh(io::IReadFile* file)
 
 			POFSubObject *sobj = new POFSubObject;
 
-			bytes_read = pof_chunk_obj2_build(sobj, file);
+			pof_chunk_obj2_index(sobj, buffer + offset);
 			pof_chunk_obj2_print(sobj, 0);
-			pof_chunk_obj2_clean(sobj);
 
 			delete sobj;
 		}
 
-		file->seek(chunk_header->length - bytes_read, true);
+		offset += chunk_header->length;
+	} while (offset < size);
 
-		delete chunk_header;
-	} while (file->getPos() < size);
+	if (buffer) delete [] buffer;
 
 	return NULL;
 }

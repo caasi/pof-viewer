@@ -20,7 +20,7 @@ typedef	struct pof_vector
 typedef struct pof_string
 {
 	POF_INT length;
-	POF_CHAR* text;	// it's not null-terminated in the POF files
+	POF_CHAR text[];	// it's not null-terminated in the POF files
 }			POF_STRING;
 
 #endif

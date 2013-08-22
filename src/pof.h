@@ -56,7 +56,7 @@ typedef struct pof_bsp_eof
 typedef BSPEndOfFile BSPBlock;
 typedef struct pof_bsp_vertex
 {
-	POF_VECTOR	*point;
+	POF_VECTOR	point;
 	POF_VECTOR	*normals;
 } BSPVertex;
 typedef struct pof_bsp_vertices
@@ -86,7 +86,7 @@ typedef struct pof_bsp_flatpoly
 	POF_UBYTE	green;
 	POF_UBYTE	blue;
 	POF_UBYTE	pad;
-	BSPFlatVertex	*vertex_data;
+	BSPFlatVertex	vertex_data[];
 } BSPFlatPolygon;
 typedef struct pof_bsp_tmapvertex
 {
@@ -104,7 +104,7 @@ typedef struct  pof_bsp_tmappoly
 	POF_FLOAT		radius;
 	POF_INT			n_verts;
 	POF_INT			tmap_num;
-	BSPTexturedVertex	*vertex_data;
+	BSPTexturedVertex	vertex_data[];
 } BSPTexturedPolygon;
 typedef struct pof_bsp_sortnorm
 {
@@ -132,9 +132,9 @@ typedef struct pof_bsp_boundbox
 /* debug functions in C style for those structs */
 #define INDENT(num) {for (unsigned int i = 0; i < num; ++i) putchar('\t');}
 
-int	pof_string_build		(POF_STRING *str, irr::io::IReadFile *file);
+//int	pof_string_index		(POF_STRING *str, irr::io::IReadFile *file);
 void	pof_string_print		(POF_STRING *str, unsigned int indent);
-void	pof_string_clean		(POF_STRING *str);
+//void	pof_string_clean		(POF_STRING *str);
 
 void	pof_vector_print		(POF_VECTOR *v, unsigned int indent);
 
@@ -142,24 +142,26 @@ void	pof_header_print		(POFHeader* header, unsigned int indent);
 
 void	pof_chunk_header_print		(POFChunkHeader* header, unsigned int indent);
 
-int	pof_chunk_hdr2_build		(POFObject *obj, irr::io::IReadFile *file);
+//int	pof_chunk_hdr2_build		(POFObject *obj, irr::io::IReadFile *file);
+int	pof_chunk_hdr2_index		(POFObject *obj, const void *buffer);
 void	pof_chunk_hdr2_print		(POFObject *obj, unsigned int indent);
-void	pof_chunk_hdr2_clean		(POFObject *obj);
+//void	pof_chunk_hdr2_clean		(POFObject *obj);
 
-int	pof_chunk_obj2_build		(POFSubObject *obj, irr::io::IReadFile *file);
+//int	pof_chunk_obj2_build		(POFSubObject *obj, irr::io::IReadFile *file);
+int	pof_chunk_obj2_index		(POFSubObject *obj, const void *buffer);
 void	pof_chunk_obj2_print		(POFSubObject *obj, unsigned int indent);
-void	pof_chunk_obj2_clean		(POFSubObject *obj);
+//void	pof_chunk_obj2_clean		(POFSubObject *obj);
 
 BSP_ID	pof_bsp_test			(BSPBlock *block);
 
 void	pof_bsp_print			(BSPBlock *block, unsigned int indent);
 
-void	pof_bsp_eof_print		(BSPEndOfFile *obj, unsigned int indent);
+void	pof_bsp_block_print		(BSPBlock *obj, unsigned int indent);
 
-int	pof_bsp_vertex_index		(BSPVertex *obj, POF_INT length,  const void *buffer);
+//int	pof_bsp_vertex_index		(BSPVertex *obj, POF_INT length,  const void *buffer);
 void	pof_bsp_vertex_print		(BSPVertex *obj, POF_INT length, unsigned int indent);
 
-int	pof_bsp_vertices_index		(BSPVertices *obj, const void *buffer);
+void	pof_bsp_vertices_index		(BSPVertices *obj, const void *buffer);
 void	pof_bsp_vertices_print		(BSPVertices *obj, unsigned int indent);
 void	pof_bsp_vertices_clean		(BSPVertices *obj);
 
